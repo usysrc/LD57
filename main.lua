@@ -9,6 +9,7 @@ local tiles
 local highscore
 local time
 gamestate = "game"
+
 local olvl = {}
 for i = 0, 16 do
     for j = 0, 1024 do
@@ -54,6 +55,7 @@ end
 
 loadScore()
 
+
 function initGame()
     time = 0
     c = {
@@ -70,6 +72,7 @@ function initGame()
         hflip = false,
         monds = 0,
     }
+    music(0)
 
     bs = {}
     tiles = {}
@@ -84,6 +87,7 @@ function updateBullets()
         local tile = mget(tx, ty)
         if tile and tile ~= 3 then
             if tile == 33 then
+                sfx(19)
                 b.dead = true
                 mset(tx, ty, 21)
                 visited = {}
@@ -106,10 +110,12 @@ function updateBullets()
             end
             if not b.dead and tile == 21 then
                 p.monds += 1
+                sfx(16)
                 mset(tx, ty, 3)
             end
             if tile ~= 12 then
                 del(bs, b)
+                sfx(18)
             end
         end
     end
@@ -120,6 +126,7 @@ function updateGame()
     updateBullets()
 
     if btnp(5) then
+        sfx(17)
         local b = {
             x = p.x,
             y = p.y,
@@ -134,7 +141,10 @@ function updateGame()
     if tile == 12 or tile == 33 then
         saveScore(p.monds, time)
         gamestate = "gameover"
+        music(-1)
+        sfx(20)
     elseif tile == 21 then
+        sfx(16)
         mset((p.x + 8) / 16, (p.y + 8) / 16, 3)
         p.monds += 1
     end
@@ -188,7 +198,7 @@ end
 
 -- Game Over State
 function updateGameOver()
-    if btnp(5) then
+    if btn(4) and btn(5) then
         resetLevel()
         initGame()
         gamestate = "game"
@@ -198,8 +208,13 @@ end
 function drawGameOver()
     cls()
     drawGame()
+    for i = 6, 64 do
+        for j = 0, 64 do
+            spr(35, i * 16, j * 16)
+        end
+    end
     camera()
-    print("Game Over", 220, 64, 7)
+    print("Game Over\nz+x to restart", 220, 64, 7)
 end
 
 function _update()
